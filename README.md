@@ -68,7 +68,7 @@ https://youtu.be/TozTdIsqyVQ
   ![Calendar task](./screenshots/calendar_task.png)
 
 - **Clients View**
-  ![Clients](./screenshots/Clients.png)
+  ![Clients](./screenshots/Clientds.png)
 
 ---
 
