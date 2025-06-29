@@ -231,6 +231,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 **Robert Zulu**
 - GitHub: [@robertxulu9](https://github.com/robertxulu9)
 - LinkedIn: [Robert Zulu](https://www.linkedin.com/in/robert-zulu/)
+- email: [robertxulu9@gmail.com]
 
 ---
 
