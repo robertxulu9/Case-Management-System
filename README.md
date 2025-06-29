@@ -2,6 +2,7 @@
 # ⚖️ Legal Case Management System
 
 A comprehensive, full-stack web application designed to streamline the management of legal cases, documents, client interactions, and internal workflows for law firms and legal departments.
+https://youtu.be/TozTdIsqyVQ
 
 > 🚀 Built with React, Node.js, Express, and MySQL.
 
