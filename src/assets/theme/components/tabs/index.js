@@ -33,17 +33,19 @@ const tabs = {
       borderRadius: borderRadius.lg,
       minHeight: "unset",
       padding: pxToRem(4),
+      overflow: "visible",
     },
 
     flexContainer: {
       height: "100%",
       position: "relative",
       zIndex: 10,
+      overflow: "visible",
     },
 
     fixed: {
-      overflow: "unset !important",
-      overflowX: "unset !important",
+      overflow: "visible !important",
+      overflowX: "visible !important",
     },
 
     vertical: {
@@ -58,6 +60,13 @@ const tabs = {
       backgroundColor: white.main,
       boxShadow: tabsBoxShadow.indicator,
       transition: "all 500ms ease",
+    },
+
+    scrollButtons: {
+      width: 20,
+      '& .MuiSvgIcon-root': {
+        fontSize: '1.5rem',
+      },
     },
   },
 };

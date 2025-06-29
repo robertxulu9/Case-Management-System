@@ -50,27 +50,6 @@ function SidenavCard() {
             star
           </Icon>
         </SoftBox>
-        <SoftBox lineHeight={1}>
-          <SoftTypography variant="h6" color="white">
-            Need help?
-          </SoftTypography>
-          <SoftBox mb={1.825} mt={-1}>
-            <SoftTypography variant="caption" color="white" fontWeight="medium">
-              Please check our docs
-            </SoftTypography>
-          </SoftBox>
-          <SoftButton
-            component={Link}
-            href="https://www.creative-tim.com/learning-lab/react/quick-start/soft-ui-dashboard/"
-            target="_blank"
-            rel="noreferrer"
-            size="small"
-            color="white"
-            fullWidth
-          >
-            documentation
-          </SoftButton>
-        </SoftBox>
       </CardContent>
     </Card>
   );

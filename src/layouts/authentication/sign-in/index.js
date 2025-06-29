@@ -14,12 +14,14 @@ Coded by www.creative-tim.com
 */
 
 import { useState } from "react";
-
-// react-router-dom components
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 // @mui material components
+import Grid from "@mui/material/Grid";
+import Card from "@mui/material/Card";
 import Switch from "@mui/material/Switch";
+import Icon from "@mui/material/Icon";
+import Alert from "@mui/material/Alert";
 
 // Soft UI Dashboard React components
 import SoftBox from "components/SoftBox";
@@ -28,53 +30,98 @@ import SoftInput from "components/SoftInput";
 import SoftButton from "components/SoftButton";
 
 // Authentication layout components
-import CoverLayout from "layouts/authentication/components/CoverLayout";
+import BasicLayout from "layouts/authentication/components/BasicLayout";
+import Socials from "layouts/authentication/components/Socials";
+import Separator from "layouts/authentication/components/Separator";
 
 // Images
-import curved9 from "assets/images/curved-images/curved-6.jpg";
+import curved6 from "assets/images/curved-images/curved-6.jpg";
+
+// Services
+import { authService } from "services/authService";
 
 function SignIn() {
+  const navigate = useNavigate();
   const [rememberMe, setRememberMe] = useState(true);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSetRememberMe = () => setRememberMe(!rememberMe);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      const response = await authService.signin({ email, password });
+      console.log("Sign in successful:", response);
+      navigate("/dashboard");
+    } catch (err) {
+      console.error("Sign in error:", err);
+      setError(err.message || "Failed to sign in");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <CoverLayout
-      title="Welcome back"
+    <BasicLayout
+      title="Welcome back!"
       description="Enter your email and password to sign in"
-      image={curved9}
+      image={curved6}
     >
-      <SoftBox component="form" role="form">
-        <SoftBox mb={2}>
-          <SoftBox mb={1} ml={0.5}>
-            <SoftTypography component="label" variant="caption" fontWeight="bold">
-              Email
+      <Card>
+        <SoftBox p={3} mb={1} textAlign="center">
+          <SoftTypography variant="h5" fontWeight="medium">
+            Sign in
             </SoftTypography>
           </SoftBox>
-          <SoftInput type="email" placeholder="Email" />
+        <SoftBox pt={2} pb={3} px={3}>
+          {error && (
+            <SoftBox mb={2}>
+              <Alert severity="error">{error}</Alert>
+            </SoftBox>
+          )}
+          <SoftBox component="form" role="form" onSubmit={handleSubmit}>
+            <SoftBox mb={2}>
+          <SoftInput 
+            type="email" 
+            placeholder="Email" 
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+                required
+          />
         </SoftBox>
         <SoftBox mb={2}>
-          <SoftBox mb={1} ml={0.5}>
-            <SoftTypography component="label" variant="caption" fontWeight="bold">
-              Password
-            </SoftTypography>
-          </SoftBox>
-          <SoftInput type="password" placeholder="Password" />
+          <SoftInput 
+            type="password" 
+            placeholder="Password" 
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+                required
+          />
         </SoftBox>
         <SoftBox display="flex" alignItems="center">
-          <Switch checked={rememberMe} onChange={handleSetRememberMe} />
+              <Switch checked={rememberMe} onChange={() => setRememberMe(!rememberMe)} />
           <SoftTypography
             variant="button"
             fontWeight="regular"
-            onClick={handleSetRememberMe}
+                onClick={() => setRememberMe(!rememberMe)}
             sx={{ cursor: "pointer", userSelect: "none" }}
           >
             &nbsp;&nbsp;Remember me
           </SoftTypography>
         </SoftBox>
         <SoftBox mt={4} mb={1}>
-          <SoftButton variant="gradient" color="info" fullWidth>
-            sign in
+          <SoftButton 
+            variant="gradient" 
+            color="info" 
+            fullWidth
+                type="submit"
+            disabled={loading}
+          >
+            {loading ? "Signing in..." : "Sign in"}
           </SoftButton>
         </SoftBox>
         <SoftBox mt={3} textAlign="center">
@@ -91,9 +138,26 @@ function SignIn() {
               Sign up
             </SoftTypography>
           </SoftTypography>
+            </SoftBox>
+            <SoftBox mt={3} textAlign="center">
+              <SoftTypography variant="button" color="text" fontWeight="regular">
+                Forgot your password?{" "}
+                <SoftTypography
+                  component={Link}
+                  to="/authentication/forgot-password"
+                  variant="button"
+                  color="info"
+                  fontWeight="medium"
+                  textGradient
+                >
+                  Reset it
+                </SoftTypography>
+              </SoftTypography>
+            </SoftBox>
         </SoftBox>
       </SoftBox>
-    </CoverLayout>
+      </Card>
+    </BasicLayout>
   );
 }
 

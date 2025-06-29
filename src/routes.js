@@ -35,24 +35,24 @@ Coded by www.creative-tim.com
   10. The `component` key is used to store the component of its route.
 */
 
-// Soft UI Dashboard React layouts
+// @mui icons
+import Icon from "@mui/material/Icon";
+
+// Pages
 import Dashboard from "layouts/dashboard";
 import Tables from "layouts/tables";
-import Billing from "layouts/billing";
-import VirtualReality from "layouts/virtual-reality";
-import RTL from "layouts/rtl";
-import Profile from "layouts/profile";
 import SignIn from "layouts/authentication/sign-in";
 import SignUp from "layouts/authentication/sign-up";
-
-// Case Management layouts
-import CaseDashboard from "layouts/case-management/dashboard";
+import ForgotPassword from "layouts/authentication/forgot-password";
+import ResetPassword from "layouts/authentication/reset-password";
 import CaseList from "layouts/case-management/case-list";
 import CaseDetails from "layouts/case-management/case-details";
 import Clients from "layouts/client-management";
-import DocumentManagement from "layouts/case-management/document-management";
-import Reports from "layouts/case-management/reports";
+import Templates from "layouts/templates";
+import TemplateEditor from "layouts/templates/TemplateEditor";
+import TemplateUse from "layouts/templates/TemplateUse";
 import Calendar from "layouts/case-management/calendar";
+import TemplateCreate from "layouts/templates/TemplateCreate";
 
 // Soft UI Dashboard React icons
 import Shop from "@mui/icons-material/Shop";
@@ -71,47 +71,11 @@ import CalendarIcon from "@mui/icons-material/CalendarToday";
 const routes = [
   {
     type: "collapse",
-    name: "Case Dashboard",
-    key: "case-dashboard",
-    route: "/",
-    icon: <CaseIcon size="12px" />,
-    component: <CaseDashboard />,
-    noCollapse: true,
-  },
-  {
-    type: "collapse",
-    name: "Cases",
-    key: "cases",
-    route: "/cases",
-    icon: <CaseIcon size="12px" />,
-    component: <CaseList />,
-    noCollapse: true,
-  },
-  {
-    type: "collapse",
-    name: "Clients",
-    key: "clients",
-    route: "/clients",
-    icon: <ClientIcon size="12px" />,
-    component: <Clients />,
-    noCollapse: true,
-  },
-  {
-    type: "collapse",
-    name: "Documents",
-    key: "documents",
-    route: "/documents",
-    icon: <Document size="12px" />,
-    component: <DocumentManagement />,
-    noCollapse: true,
-  },
-  {
-    type: "collapse",
-    name: "Reports",
-    key: "reports",
-    route: "/reports",
-    icon: <ReportIcon size="12px" />,
-    component: <Reports />,
+    name: "Dashboard",
+    key: "dashboard",
+    route: "/dashboard",
+    icon: <Icon fontSize="small">dashboard</Icon>,
+    component: Dashboard,
     noCollapse: true,
   },
   {
@@ -119,37 +83,106 @@ const routes = [
     name: "Calendar",
     key: "calendar",
     route: "/calendar",
-    icon: <CalendarIcon size="12px" />,
-    component: <Calendar />,
+    icon: <CalendarIcon fontSize="small" />,
+    component: Calendar,
     noCollapse: true,
   },
-  { type: "title", title: "Account Pages", key: "account-pages" },
   {
     type: "collapse",
-    name: "Profile",
-    key: "profile",
-    route: "/profile",
-    icon: <CustomerSupport size="12px" />,
-    component: <Profile />,
+    name: "Cases",
+    key: "cases",
+    route: "/cases",
+    icon: <Icon fontSize="small">folder</Icon>,
+    component: CaseList,
+    noCollapse: true,
+  },
+  {
+    type: "collapse",
+    name: "Clients",
+    key: "clients",
+    route: "/clients",
+    icon: <Icon fontSize="small">people</Icon>,
+    component: Clients,
+    noCollapse: true,
+  },
+  {
+    type: "collapse",
+    name: "Templates",
+    key: "templates",
+    route: "/templates",
+    icon: <Icon fontSize="small">description</Icon>,
+    component: Templates,
+    noCollapse: true,
+  },
+  {
+    type: "collapse",
+    name: "Tables",
+    key: "tables",
+    route: "/tables",
+    icon: <Icon fontSize="small">table_view</Icon>,
+    component: Tables,
     noCollapse: true,
   },
   {
     type: "collapse",
     name: "Sign In",
     key: "sign-in",
-    route: "/sign-in",
-    icon: <Document size="12px" />,
-    component: <SignIn />,
+    route: "/authentication/sign-in",
+    icon: <Icon fontSize="small">login</Icon>,
+    component: SignIn,
     noCollapse: true,
   },
   {
     type: "collapse",
     name: "Sign Up",
     key: "sign-up",
-    route: "/sign-up",
-    icon: <SpaceShip size="12px" />,
-    component: <SignUp />,
+    route: "/authentication/sign-up",
+    icon: <Icon fontSize="small">assignment</Icon>,
+    component: SignUp,
     noCollapse: true,
+  },
+  // Hidden routes (not shown in sidebar)
+  {
+    type: "hidden",
+    name: "Case Details",
+    key: "case-details",
+    route: "/cases/:caseName",
+    component: CaseDetails,
+  },
+  {
+    type: "hidden",
+    name: "Template Editor",
+    key: "template-editor",
+    route: "/templates/:id/edit",
+    component: TemplateEditor,
+  },
+  {
+    type: "hidden",
+    name: "Template Use",
+    key: "template-use",
+    route: "/templates/:id/use",
+    component: TemplateUse,
+  },
+  {
+    type: "hidden",
+    name: "Forgot Password",
+    key: "forgot-password",
+    route: "/authentication/forgot-password",
+    component: ForgotPassword,
+  },
+  {
+    type: "hidden",
+    name: "Reset Password",
+    key: "reset-password",
+    route: "/authentication/reset-password",
+    component: ResetPassword,
+  },
+  {
+    type: "route",
+    name: "Create Template",
+    key: "create-template",
+    route: "/templates/new",
+    component: TemplateCreate
   },
 ];
 

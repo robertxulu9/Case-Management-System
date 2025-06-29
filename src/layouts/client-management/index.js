@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 
 // @mui material components
 import Grid from "@mui/material/Grid";
@@ -18,6 +18,7 @@ import Footer from "examples/Footer";
 // Custom components
 import ClientModal from "./components/ClientModal";
 import ClientsTable from "./components/ClientsTable";
+import ClientSearch from "./components/ClientSearch";
 
 // Database operations
 import { clientOperations } from "services/databaseService";
@@ -28,6 +29,53 @@ function Clients() {
   const [selectedClient, setSelectedClient] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Filtered clients based on search
+  const filteredClients = useMemo(() => {
+    if (!searchQuery) return clients;
+
+    return clients.filter(client => {
+      const searchFields = [
+        // Personal Details
+        `${client.firstname || ''} ${client.middlename || ''} ${client.lastname || ''}`, // Full name
+        client.email,
+        client.cellphone,
+        client.workphone,
+        client.homephone,
+        client.nrc,
+        client.passport,
+        client.gender,
+        client.dateofbirth,
+        client.placeofbirth,
+        client.nationality,
+        client.maritalstatus,
+        client.occupation,
+        
+        // Address
+        client.address1,
+        client.address2,
+        client.city,
+        client.province,
+        client.country,
+        
+        // Professional
+        client.company,
+        client.jobtitle,
+        client.website,
+        client.faxnumber,
+        
+        // Other
+        client.peoplegroup,
+        client.notes
+      ]
+        .filter(Boolean) // Remove null/undefined values
+        .join(" ") // Combine all fields
+        .toLowerCase(); // Convert to lowercase for case-insensitive search
+
+      return searchFields.includes(searchQuery.toLowerCase());
+    });
+  }, [clients, searchQuery]);
 
   // Load clients from Supabase
   const loadClients = async () => {
@@ -78,20 +126,31 @@ function Clients() {
       // Close modal and reload the clients list
       setModalOpen(false);
       await loadClients();
+      return true; // Indicate success to the modal
     } catch (err) {
       console.error('Error saving client:', err);
-      // Format the error message
+      // Format the error message based on the error type
       let errorMessage = 'Failed to save client';
-      if (err.message) {
+      
+      if (err.code === '23505') {
+        if (err.details?.includes('email')) {
+          errorMessage = 'A client with this email address already exists.';
+        } else if (err.details?.includes('nrc')) {
+          errorMessage = 'A client with this NRC number already exists.';
+        } else {
+          errorMessage = 'This record already exists in the system.';
+        }
+      } else if (err.message) {
         errorMessage = err.message;
       } else if (err.details) {
         errorMessage = err.details;
       } else if (typeof err === 'string') {
         errorMessage = err;
       }
+      
       setError(errorMessage);
-      // Don't close modal on error so user can try again
-      throw err; // Re-throw to let modal handle the error display
+      // Return false to indicate failure to the modal
+      return false;
     }
   };
 
@@ -111,6 +170,10 @@ function Clients() {
         setError(err.message);
       }
     }
+  };
+
+  const handleSearch = (query) => {
+    setSearchQuery(query);
   };
 
   return (
@@ -138,6 +201,8 @@ function Clients() {
         </SoftBox>
 
         <Card>
+          <ClientSearch onSearch={handleSearch} />
+          
           <SoftBox p={3}>
             {error && (
               <SoftBox mb={2}>
@@ -148,7 +213,7 @@ function Clients() {
             )}
             
             <ClientsTable
-              clients={clients}
+              clients={filteredClients}
               loading={loading}
               onEdit={handleEditClient}
               onDelete={handleDeleteClient}

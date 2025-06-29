@@ -50,8 +50,8 @@ function DocumentList({ documents, loading, error, onRetry, onDownload, onDelete
   };
 
   const filteredDocuments = documents?.filter((doc) => {
-    const matchesSearch = doc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         doc.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = (doc.filename?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
+                         (doc.description?.toLowerCase() || "").includes(searchQuery.toLowerCase());
     const matchesCategory = category === "all" || doc.category === category;
     return matchesSearch && matchesCategory;
   }) || [];
@@ -70,7 +70,9 @@ function DocumentList({ documents, loading, error, onRetry, onDownload, onDelete
     { value: "reports", label: "Reports" },
     { value: "correspondence", label: "Correspondence" },
     { value: "evidence", label: "Evidence" },
-    { value: "other", label: "Other" },
+    { value: "legal_filings", label: "Legal Filings" },
+    { value: "client_documents", label: "Client Documents" },
+    { value: "other", label: "Other" }
   ];
 
   return (
@@ -130,18 +132,14 @@ function DocumentList({ documents, loading, error, onRetry, onDownload, onDelete
                       <TableCell>
                         <SoftBox display="flex" alignItems="center" px={1}>
                           <SoftBox mr={2}>
-                            {doc.type === "folder" ? (
-                              <FolderIcon color="action" />
-                            ) : (
-                              <DescriptionIcon color="action" />
-                            )}
+                            <DescriptionIcon color="action" />
                           </SoftBox>
                           <SoftBox display="flex" flexDirection="column">
                             <SoftTypography variant="button" fontWeight="medium">
-                              {doc.name}
+                              {doc.filename}
                             </SoftTypography>
                             <SoftTypography variant="caption" color="secondary">
-                              {doc.description}
+                              {doc.description || "No description"}
                             </SoftTypography>
                           </SoftBox>
                         </SoftBox>
@@ -153,19 +151,19 @@ function DocumentList({ documents, loading, error, onRetry, onDownload, onDelete
                       </TableCell>
                       <TableCell>
                         <SoftTypography variant="caption" color="secondary">
-                          {formatFileSize(doc.size)}
+                          {formatFileSize(doc.filesize)}
                         </SoftTypography>
                       </TableCell>
                       <TableCell>
                         <SoftTypography variant="caption" color="secondary">
-                          {new Date(doc.uploadedAt).toLocaleString()}
+                          {new Date(doc.created_at).toLocaleString()}
                         </SoftTypography>
                       </TableCell>
                       <TableCell>
                         <SoftBox display="flex" gap={1}>
                           <IconButton
                             size="small"
-                            onClick={() => onDownload?.(doc.id)}
+                            onClick={() => onDownload?.(doc)}
                             disabled={loading}
                           >
                             <DownloadIcon fontSize="small" />

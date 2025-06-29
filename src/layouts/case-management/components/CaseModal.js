@@ -49,7 +49,7 @@ const OFFICES = [
   { id: "south", label: "South Branch" },
 ];
 
-import { clientOperations, caseOperations } from "services/databaseService";
+import { clientOperations, caseOperations, practiceAreaOperations } from "services/databaseService";
 
 function generateCaseNumber() {
   const year = new Date().getFullYear();
@@ -59,35 +59,40 @@ function generateCaseNumber() {
 
 function CaseModal({ open, onClose, caseData, onSave }) {
   const [clients, setClients] = useState([]);
+  const [practiceAreas, setPracticeAreas] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
-    caseName: "",
-    caseNumber: generateCaseNumber(),
-    practiceArea: "",
+    casename: "",
+    casenumber: generateCaseNumber(),
+    practicearea: "",
     newPracticeArea: "",
-    caseStage: "intake",
+    casestage: "intake",
     dateopened: new Date().toISOString().split('T')[0],
     office: "",
     description: "",
-    statuteOfLimitations: "",
-    conflictCheck: false,
-    conflictCheckNotes: "",
+    statuteoflimitations: "",
+    conflictcheck: false,
+    conflictchecknotes: "",
     clientid: "",
     ...caseData,
   });
 
   const [showNewPracticeArea, setShowNewPracticeArea] = useState(false);
 
-  // Load clients from Supabase
+  // Load clients and practice areas
   useEffect(() => {
-    const loadClients = async () => {
+    const loadData = async () => {
       try {
         setLoading(true);
-        const data = await clientOperations.getAllClients();
-        setClients(data);
+        const [clientsData, practiceAreasData] = await Promise.all([
+          clientOperations.getAllClients(),
+          practiceAreaOperations.getAllPracticeAreas()
+        ]);
+        setClients(clientsData);
+        setPracticeAreas(practiceAreasData);
       } catch (err) {
-        console.error('Error loading clients:', err);
+        console.error('Error loading data:', err);
         setError(err.message);
       } finally {
         setLoading(false);
@@ -95,7 +100,7 @@ function CaseModal({ open, onClose, caseData, onSave }) {
     };
 
     if (open) {
-      loadClients();
+      loadData();
     }
   }, [open]);
 
@@ -113,23 +118,56 @@ function CaseModal({ open, onClose, caseData, onSave }) {
     }));
   };
 
-  const handleAddPracticeArea = () => {
+  const handleAddPracticeArea = async () => {
     if (formData.newPracticeArea.trim()) {
-      // In a real application, you would typically make an API call to add the new practice area
-      // For now, we'll just update the form data
-      setFormData((prev) => ({
-        ...prev,
-        practiceArea: prev.newPracticeArea.trim(),
-        newPracticeArea: "",
-      }));
-      setShowNewPracticeArea(false);
+      try {
+        setLoading(true);
+        // Add new practice area to database
+        const newArea = await practiceAreaOperations.createPracticeArea(formData.newPracticeArea.trim());
+        
+        // Update practice areas list
+        setPracticeAreas(prev => [...prev, newArea]);
+        
+        // Update form data
+        setFormData(prev => ({
+          ...prev,
+          practicearea: newArea.id,
+          newPracticeArea: "",
+        }));
+        
+        setShowNewPracticeArea(false);
+      } catch (err) {
+        console.error('Error adding practice area:', err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSave(formData);
-    onClose();
+    setLoading(true);
+    setError(null);
+    
+    try {
+      // Create a new object without UI-only fields
+      const dataToSubmit = { ...formData };
+      delete dataToSubmit.newPracticeArea; // Remove UI-only field
+      
+      // Handle empty date fields
+      if (!dataToSubmit.statuteoflimitations) {
+        delete dataToSubmit.statuteoflimitations;
+      }
+      
+      await onSave(dataToSubmit);
+      onClose();
+    } catch (err) {
+      console.error('Error saving case:', err);
+      setError(err.message || 'Failed to save case. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -161,98 +199,87 @@ function CaseModal({ open, onClose, caseData, onSave }) {
                   select
                   label="Client"
                   value={formData.clientid}
-                  onChange={handleChange("clientid")}
+                  onChange={handleChange('clientid')}
                   required
-                  disabled={loading}
-                  error={!!error}
-                  helperText={error}
-                  SelectProps={{
-                    MenuProps: {
-                      PaperProps: {
-                        sx: { maxHeight: 200 }
-                      }
-                    }
-                  }}
                 >
                   {clients.map((client) => (
                     <MenuItem key={client.id} value={client.id}>
-                      {`${client.firstname} ${client.lastname}`}
+                      {`${client.firstname} ${client.lastname}${client.company ? ` - ${client.company}` : ''}`}
                     </MenuItem>
                   ))}
                 </TextField>
               </Grid>
+
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
                   label="Case Name"
-                  value={formData.caseName}
-                  onChange={handleChange("caseName")}
+                  value={formData.casename}
+                  onChange={handleChange('casename')}
                   required
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Case Number"
-                  value={formData.caseNumber}
-                  disabled
-                  helperText="Auto-generated case number"
                 />
               </Grid>
 
               <Grid item xs={12} sm={6}>
-                {showNewPracticeArea ? (
-                  <SoftBox display="flex" gap={1}>
-                    <TextField
-                      fullWidth
-                      label="New Practice Area"
-                      value={formData.newPracticeArea}
-                      onChange={handleChange("newPracticeArea")}
-                    />
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      onClick={handleAddPracticeArea}
-                      sx={{ minWidth: 'auto' }}
-                    >
-                      <AddIcon />
-                    </Button>
-                  </SoftBox>
-                ) : (
-                  <TextField
-                    fullWidth
-                    select
-                    label="Practice Area"
-                    value={formData.practiceArea}
-                    onChange={handleChange("practiceArea")}
-                    required
-                    SelectProps={{
-                      MenuProps: {
-                        PaperProps: {
-                          sx: { maxHeight: 200 }
-                        }
-                      }
-                    }}
-                  >
-                    {PRACTICE_AREAS.map((area) => (
-                      <MenuItem key={area.id} value={area.id}>
-                        {area.label}
-                      </MenuItem>
-                    ))}
-                    <MenuItem value="add_new" onClick={() => setShowNewPracticeArea(true)}>
-                      <AddIcon sx={{ mr: 1 }} /> Add New Practice Area
-                    </MenuItem>
-                  </TextField>
-                )}
+                <TextField
+                  fullWidth
+                  label="Case Number"
+                  value={formData.casenumber}
+                  onChange={handleChange('casenumber')}
+                  required
+                />
               </Grid>
 
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
                   select
+                  label="Practice Area"
+                  value={formData.practicearea}
+                  onChange={handleChange('practicearea')}
+                >
+                  {practiceAreas.map((area) => (
+                    <MenuItem key={area.id} value={area.id}>
+                      {area.name}
+                    </MenuItem>
+                  ))}
+                  <MenuItem value="new">
+                    <SoftBox display="flex" alignItems="center">
+                      <AddIcon fontSize="small" sx={{ mr: 1 }} />
+                      Add New Practice Area
+                    </SoftBox>
+                  </MenuItem>
+                </TextField>
+              </Grid>
+
+              {formData.practicearea === 'new' && (
+                <Grid item xs={12}>
+                  <SoftBox display="flex" gap={1}>
+                    <TextField
+                      fullWidth
+                      label="New Practice Area"
+                      value={formData.newPracticeArea}
+                      onChange={handleChange('newPracticeArea')}
+                    />
+                    <SoftButton
+                      variant="contained"
+                      color="primary"
+                      onClick={handleAddPracticeArea}
+                      disabled={!formData.newPracticeArea.trim()}
+                    >
+                      Add
+                    </SoftButton>
+                  </SoftBox>
+                </Grid>
+              )}
+
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  select
                   label="Case Stage"
-                  value={formData.caseStage}
-                  onChange={handleChange("caseStage")}
+                  value={formData.casestage}
+                  onChange={handleChange('casestage')}
                   required
                 >
                   {CASE_STAGES.map((stage) => (
@@ -269,9 +296,9 @@ function CaseModal({ open, onClose, caseData, onSave }) {
                   type="date"
                   label="Date Opened"
                   value={formData.dateopened}
-                  onChange={handleChange("dateopened")}
-                  InputLabelProps={{ shrink: true }}
+                  onChange={handleChange('dateopened')}
                   required
+                  InputLabelProps={{ shrink: true }}
                 />
               </Grid>
 
@@ -281,8 +308,7 @@ function CaseModal({ open, onClose, caseData, onSave }) {
                   select
                   label="Office"
                   value={formData.office}
-                  onChange={handleChange("office")}
-                  required
+                  onChange={handleChange('office')}
                 >
                   {OFFICES.map((office) => (
                     <MenuItem key={office.id} value={office.id}>
@@ -292,25 +318,25 @@ function CaseModal({ open, onClose, caseData, onSave }) {
                 </TextField>
               </Grid>
 
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label="Description"
-                  value={formData.description}
-                  onChange={handleChange("description")}
-                  multiline
-                  rows={4}
-                />
-              </Grid>
-
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
                   type="date"
                   label="Statute of Limitations"
-                  value={formData.statuteOfLimitations}
-                  onChange={handleChange("statuteOfLimitations")}
+                  value={formData.statuteoflimitations}
+                  onChange={handleChange('statuteoflimitations')}
                   InputLabelProps={{ shrink: true }}
+                />
+              </Grid>
+
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={4}
+                  label="Description"
+                  value={formData.description}
+                  onChange={handleChange('description')}
                 />
               </Grid>
 
@@ -318,38 +344,47 @@ function CaseModal({ open, onClose, caseData, onSave }) {
                 <FormControlLabel
                   control={
                     <Checkbox
-                      checked={formData.conflictCheck}
-                      onChange={handleCheckboxChange("conflictCheck")}
+                      checked={formData.conflictcheck}
+                      onChange={handleCheckboxChange('conflictcheck')}
                     />
                   }
-                  label="Conflict Check Completed"
+                  label="Conflict Check Required"
                 />
               </Grid>
 
-              {formData.conflictCheck && (
+              {formData.conflictcheck && (
                 <Grid item xs={12}>
                   <TextField
                     fullWidth
-                    label="Conflict Check Notes"
-                    value={formData.conflictCheckNotes}
-                    onChange={handleChange("conflictCheckNotes")}
                     multiline
-                    rows={3}
+                    rows={2}
+                    label="Conflict Check Notes"
+                    value={formData.conflictchecknotes}
+                    onChange={handleChange('conflictchecknotes')}
                   />
                 </Grid>
               )}
-
-              <Grid item xs={12}>
-                <SoftBox display="flex" justifyContent="flex-end" gap={2}>
-                  <SoftButton variant="gradient" color="dark" onClick={onClose}>
-                    Cancel
-                  </SoftButton>
-                  <SoftButton variant="gradient" color="info" type="submit">
-                    {caseData ? "Update" : "Create"}
-                  </SoftButton>
-                </SoftBox>
-              </Grid>
             </Grid>
+
+            {error && (
+              <SoftBox mt={2}>
+                <SoftTypography color="error">{error}</SoftTypography>
+              </SoftBox>
+            )}
+
+            <SoftBox mt={3} display="flex" justifyContent="flex-end" gap={1}>
+              <SoftButton variant="outlined" onClick={onClose}>
+                Cancel
+              </SoftButton>
+              <SoftButton
+                type="submit"
+                variant="contained"
+                color="primary"
+                disabled={loading}
+              >
+                {loading ? "Saving..." : "Save Case"}
+              </SoftButton>
+            </SoftBox>
           </SoftBox>
         </form>
       </Card>
@@ -360,7 +395,20 @@ function CaseModal({ open, onClose, caseData, onSave }) {
 CaseModal.propTypes = {
   open: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
-  caseData: PropTypes.object,
+  caseData: PropTypes.shape({
+    id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    casename: PropTypes.string,
+    casenumber: PropTypes.string,
+    clientid: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    practicearea: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    casestage: PropTypes.string,
+    dateopened: PropTypes.string,
+    office: PropTypes.string,
+    description: PropTypes.string,
+    statuteoflimitations: PropTypes.string,
+    conflictcheck: PropTypes.bool,
+    conflictchecknotes: PropTypes.string,
+  }),
   onSave: PropTypes.func.isRequired,
 };
 

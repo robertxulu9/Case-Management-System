@@ -14,13 +14,14 @@ Coded by www.creative-tim.com
 */
 
 import { useState } from "react";
-
-// react-router-dom components
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 // @mui material components
+import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
-import Checkbox from "@mui/material/Checkbox";
+import Switch from "@mui/material/Switch";
+import Icon from "@mui/material/Icon";
+import Alert from "@mui/material/Alert";
 
 // Soft UI Dashboard React components
 import SoftBox from "components/SoftBox";
@@ -34,74 +35,161 @@ import Socials from "layouts/authentication/components/Socials";
 import Separator from "layouts/authentication/components/Separator";
 
 // Images
-import curved6 from "assets/images/curved-images/curved14.jpg";
+import curved6 from "assets/images/curved-images/curved-6.jpg";
+
+// Services
+import { authService } from "services/authService";
 
 function SignUp() {
-  const [agreement, setAgremment] = useState(true);
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSetAgremment = () => setAgremment(!agreement);
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+
+    // Validate passwords match
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    // Validate password strength
+    if (formData.password.length < 8) {
+      setError("Password must be at least 8 characters long");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await authService.signup({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        password: formData.password,
+      });
+      console.log("Sign up successful:", response);
+      navigate("/dashboard");
+    } catch (err) {
+      console.error("Sign up error:", err);
+      setError(err.message || "Failed to sign up");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <BasicLayout
-      title="Welcome!"
-      description="Use these awesome forms to login or create new account in your project for free."
+      title="Join us today"
+      description="Enter your information to create an account"
       image={curved6}
     >
       <Card>
         <SoftBox p={3} mb={1} textAlign="center">
           <SoftTypography variant="h5" fontWeight="medium">
-            Register with
+            Sign up
           </SoftTypography>
         </SoftBox>
-        <SoftBox mb={2}>
-          <Socials />
-        </SoftBox>
-        <Separator />
         <SoftBox pt={2} pb={3} px={3}>
-          <SoftBox component="form" role="form">
+          {error && (
             <SoftBox mb={2}>
-              <SoftInput placeholder="Name" />
+              <Alert severity="error">{error}</Alert>
+            </SoftBox>
+          )}
+          <SoftBox component="form" role="form" onSubmit={handleSubmit}>
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6}>
+                <SoftBox mb={2}>
+                  <SoftInput
+                    type="text"
+                    placeholder="First Name"
+                    name="firstName"
+                    value={formData.firstName}
+                    onChange={handleChange}
+                    required
+                  />
+                </SoftBox>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <SoftBox mb={2}>
+                  <SoftInput
+                    type="text"
+                    placeholder="Last Name"
+                    name="lastName"
+                    value={formData.lastName}
+                    onChange={handleChange}
+                    required
+                  />
+                </SoftBox>
+              </Grid>
+            </Grid>
+            <SoftBox mb={2}>
+              <SoftInput
+                type="email"
+                placeholder="Email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                required
+              />
             </SoftBox>
             <SoftBox mb={2}>
-              <SoftInput type="email" placeholder="Email" />
+              <SoftInput
+                type="password"
+                placeholder="Password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                required
+              />
             </SoftBox>
             <SoftBox mb={2}>
-              <SoftInput type="password" placeholder="Password" />
-            </SoftBox>
-            <SoftBox display="flex" alignItems="center">
-              <Checkbox checked={agreement} onChange={handleSetAgremment} />
-              <SoftTypography
-                variant="button"
-                fontWeight="regular"
-                onClick={handleSetAgremment}
-                sx={{ cursor: "poiner", userSelect: "none" }}
-              >
-                &nbsp;&nbsp;I agree the&nbsp;
-              </SoftTypography>
-              <SoftTypography
-                component="a"
-                href="#"
-                variant="button"
-                fontWeight="bold"
-                textGradient
-              >
-                Terms and Conditions
-              </SoftTypography>
+              <SoftInput
+                type="password"
+                placeholder="Confirm Password"
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                required
+              />
             </SoftBox>
             <SoftBox mt={4} mb={1}>
-              <SoftButton variant="gradient" color="dark" fullWidth>
-                sign up
+              <SoftButton 
+                variant="gradient" 
+                color="info" 
+                fullWidth
+                type="submit"
+                disabled={loading}
+              >
+                {loading ? "Creating account..." : "Sign up"}
               </SoftButton>
             </SoftBox>
             <SoftBox mt={3} textAlign="center">
               <SoftTypography variant="button" color="text" fontWeight="regular">
-                Already have an account?&nbsp;
+                Already have an account?{" "}
                 <SoftTypography
                   component={Link}
                   to="/authentication/sign-in"
                   variant="button"
-                  color="dark"
-                  fontWeight="bold"
+                  color="info"
+                  fontWeight="medium"
                   textGradient
                 >
                   Sign in

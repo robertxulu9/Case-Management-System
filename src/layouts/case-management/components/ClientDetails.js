@@ -1,156 +1,217 @@
+import { useState } from "react";
 import PropTypes from "prop-types";
-import { Link } from "react-router-dom";
 
 // @mui material components
 import Grid from "@mui/material/Grid";
-import Divider from "@mui/material/Divider";
-import Button from "@mui/material/Button";
-
-// @mui icons
-import EditIcon from "@mui/icons-material/Edit";
-import AddIcon from "@mui/icons-material/Add";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogActions from "@mui/material/DialogActions";
+import TextField from "@mui/material/TextField";
 
 // Soft UI Dashboard React components
 import SoftBox from "components/SoftBox";
-import SoftTypography from "components/SoftTypography";
-import SoftAvatar from "components/SoftAvatar";
-import SoftBadge from "components/SoftBadge";
+import SoftButton from "components/SoftButton";
 
-function ClientDetails({ client }) {
-  if (!client) return null;
+function ClientDetails({ open, client, onClose, onSubmit }) {
+  const [formData, setFormData] = useState({
+    firstname: client?.firstname || "",
+    middlename: client?.middlename || "",
+    lastname: client?.lastname || "",
+    email: client?.email || "",
+    cellphone: client?.cellphone || "",
+    workphone: client?.workphone || "",
+    homephone: client?.homephone || "",
+    company: client?.company || "",
+    jobtitle: client?.jobtitle || "",
+    address1: client?.address1 || "",
+    address2: client?.address2 || "",
+    city: client?.city || "",
+    province: client?.province || "",
+    country: client?.country || ""
+  });
 
-  const infoSections = [
-    {
-      title: "Client Information",
-      items: [
-        { label: "Name", value: client.name },
-        { label: "Company", value: client.company },
-        { label: "Email", value: client.email },
-        { label: "Phone", value: client.phone },
-        { label: "Address", value: client.address },
-      ],
-    },
-    {
-      title: "Client Status",
-      items: [
-        { label: "Status", value: client.status },
-        { label: "Active Cases", value: client.activeCases },
-        { label: "Total Cases", value: client.totalCases },
-        { label: "Member Since", value: client.memberSince },
-        { label: "Last Active", value: client.lastActive },
-      ],
-    },
-  ];
+  const handleChange = (field) => (event) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: event.target.value
+    }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSubmit(formData);
+  };
 
   return (
-    <SoftBox>
-      <SoftBox display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <SoftBox display="flex" alignItems="center">
-          <SoftAvatar
-            src={client.avatar}
-            alt={client.name}
-            size="xl"
-            variant="rounded"
-            sx={{ mr: 2 }}
-          />
-          <SoftBox>
-            <SoftTypography variant="h5" fontWeight="bold">
-              {client.name}
-            </SoftTypography>
-            <SoftTypography variant="button" color="secondary">
-              {client.company}
-            </SoftTypography>
-          </SoftBox>
-        </SoftBox>
-        <SoftBox>
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<EditIcon />}
-            sx={{ mr: 1 }}
-          >
-            Edit Client
-          </Button>
-          <Button
-            variant="contained"
-            color="success"
-            startIcon={<AddIcon />}
-            component={Link}
-            to={`/cases/new?clientId=${client.id}`}
-          >
-            New Case
-          </Button>
-        </SoftBox>
-      </SoftBox>
-
-      {infoSections.map((section, index) => (
-        <SoftBox key={section.title} mb={3}>
-          <SoftTypography variant="h6" fontWeight="medium" mb={2}>
-            {section.title}
-          </SoftTypography>
-          <Grid container spacing={2}>
-            {section.items.map((item) => (
-              <Grid item xs={12} sm={6} key={item.label}>
-                <SoftBox mb={1}>
-                  <SoftTypography variant="caption" color="secondary">
-                    {item.label}
-                  </SoftTypography>
-                  {item.label === "Status" ? (
-                    <SoftBadge
-                      variant="gradient"
-                      color={item.value === "Active" ? "success" : "error"}
-                      badgeContent={item.value}
-                      container
-                    />
-                  ) : item.label === "Active Cases" ? (
-                    <SoftBadge
-                      variant="gradient"
-                      color="info"
-                      badgeContent={item.value}
-                      container
-                    />
-                  ) : (
-                    <SoftTypography variant="button" fontWeight="medium">
-                      {item.value}
-                    </SoftTypography>
-                  )}
-                </SoftBox>
+    <Dialog 
+      open={open} 
+      onClose={onClose}
+      maxWidth="md"
+      fullWidth
+    >
+      <form onSubmit={handleSubmit}>
+        <DialogTitle>
+          {client ? "Edit Client" : "New Client"}
+        </DialogTitle>
+        <DialogContent>
+          <SoftBox py={3}>
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  label="First Name"
+                  value={formData.firstname}
+                  onChange={handleChange("firstname")}
+                  required
+                />
               </Grid>
-            ))}
-          </Grid>
-          {index < infoSections.length - 1 && (
-            <SoftBox mt={3}>
-              <Divider />
-            </SoftBox>
-          )}
-        </SoftBox>
-      ))}
-
-      <SoftBox mt={3}>
-        <SoftTypography variant="h6" fontWeight="medium" mb={2}>
-          Recent Cases
-        </SoftTypography>
-        {/* Here you would include the RecentCases component with filtered cases for this client */}
-      </SoftBox>
-    </SoftBox>
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  label="Middle Name"
+                  value={formData.middlename}
+                  onChange={handleChange("middlename")}
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  label="Last Name"
+                  value={formData.lastname}
+                  onChange={handleChange("lastname")}
+                  required
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Email"
+                  type="email"
+                  value={formData.email}
+                  onChange={handleChange("email")}
+                  required
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Cell Phone"
+                  value={formData.cellphone}
+                  onChange={handleChange("cellphone")}
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Work Phone"
+                  value={formData.workphone}
+                  onChange={handleChange("workphone")}
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Home Phone"
+                  value={formData.homephone}
+                  onChange={handleChange("homephone")}
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Company"
+                  value={formData.company}
+                  onChange={handleChange("company")}
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Job Title"
+                  value={formData.jobtitle}
+                  onChange={handleChange("jobtitle")}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Address Line 1"
+                  value={formData.address1}
+                  onChange={handleChange("address1")}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  label="Address Line 2"
+                  value={formData.address2}
+                  onChange={handleChange("address2")}
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  label="City"
+                  value={formData.city}
+                  onChange={handleChange("city")}
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  label="Province/State"
+                  value={formData.province}
+                  onChange={handleChange("province")}
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  label="Country"
+                  value={formData.country}
+                  onChange={handleChange("country")}
+                />
+              </Grid>
+            </Grid>
+          </SoftBox>
+        </DialogContent>
+        <DialogActions>
+          <SoftBox p={2} display="flex" justifyContent="flex-end" gap={2}>
+            <SoftButton onClick={onClose} variant="text" color="secondary">
+              Cancel
+            </SoftButton>
+            <SoftButton type="submit" variant="gradient" color="info">
+              {client ? "Save Changes" : "Create Client"}
+            </SoftButton>
+          </SoftBox>
+        </DialogActions>
+      </form>
+    </Dialog>
   );
 }
 
 ClientDetails.propTypes = {
+  open: PropTypes.bool.isRequired,
   client: PropTypes.shape({
-    id: PropTypes.string.isRequired,
-    name: PropTypes.string.isRequired,
-    email: PropTypes.string.isRequired,
-    phone: PropTypes.string.isRequired,
+    id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    firstname: PropTypes.string,
+    middlename: PropTypes.string,
+    lastname: PropTypes.string,
+    email: PropTypes.string,
+    cellphone: PropTypes.string,
+    workphone: PropTypes.string,
+    homephone: PropTypes.string,
     company: PropTypes.string,
-    address: PropTypes.string,
-    avatar: PropTypes.string,
-    status: PropTypes.string.isRequired,
-    activeCases: PropTypes.number.isRequired,
-    totalCases: PropTypes.number.isRequired,
-    memberSince: PropTypes.string.isRequired,
-    lastActive: PropTypes.string.isRequired,
+    jobtitle: PropTypes.string,
+    address1: PropTypes.string,
+    address2: PropTypes.string,
+    city: PropTypes.string,
+    province: PropTypes.string,
+    country: PropTypes.string,
   }),
+  onClose: PropTypes.func.isRequired,
+  onSubmit: PropTypes.func.isRequired,
 };
 
 export default ClientDetails; 

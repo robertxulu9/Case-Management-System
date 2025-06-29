@@ -1,0 +1,204 @@
+INSERT INTO document_templates (`id`, `title`, `description`, `category`, `content`, `variables`, `is_active`, `created_at`, `updated_at`, `created_by`, `updated_by`) VALUES 
+('41b82943-6800-4303-993b-0e36c4438bb7', 'Retainer Agreement', 'Standard retainer agreement template', 'agreements', '<h2>RETAINER AGREEMENT</h2>
+
+<p>THIS AGREEMENT made this {current_date}</p>
+
+<p><strong>BETWEEN:</strong></p>
+
+<p>{firm_name}<br>
+{firm_address}<br>
+(hereinafter referred to as the `Firm`)</p>
+
+<p><strong>AND:</strong></p>
+
+<p>{client_name}<br>
+{client_address}<br>
+(hereinafter referred to as the `Client`)</p>
+
+<h3>1. SCOPE OF SERVICES</h3>
+
+<p>The Client hereby retains the Firm to provide legal services in connection with {matter_description}.</p>
+
+<h3>2. FEES AND BILLING</h3>
+
+<p>{fee_structure}</p>
+
+<h3>3. RETAINER</h3>
+
+<p>The Client agrees to pay an initial retainer of {retainer_amount}.</p>
+
+<h3>4. SIGNATURES</h3>
+
+<p>_____________________<br>
+{firm_representative}<br>
+For the Firm</p>
+
+<p>_____________________<br>
+{client_name}<br>
+Client</p>', '["firm_name","firm_address","client_name","client_address","matter_description","fee_structure","retainer_amount","firm_representative","current_date"]', 1, '2025-05-27 11:43:57.962603', '2025-05-27 11:43:57.962603', null, null),
+
+('4913aa2f-ce94-46fe-b40c-db5d84ccd8b3', 'Notice of Appointment to Act', 'Template for notice of appointment', 'court_documents', '<h2>NOTICE OF APPOINTMENT TO ACT</h2>
+
+<p>TO: The Court and All Parties</p>
+
+<p>TAKE NOTICE that {firm_name} has been appointed to act as legal representative for {client_name} in this proceeding.</p>
+
+<p>The address for service is:</p>
+
+<p>{firm_address}</p>
+
+<p>Dated: {current_date}</p>
+
+<p>_____________________<br>
+{lawyer_name}<br>
+{firm_name}</p>', '["firm_name","client_name","firm_address","lawyer_name","current_date"]', 1, '2025-05-27 11:43:57.962603', '2025-05-27 11:43:57.962603', null, null),
+
+('63f1c52d-e524-4630-a08c-998a848125e6', 'Power of Attorney', 'General Power of Attorney template', 'authorizations', '<h2>POWER OF ATTORNEY</h2>
+
+<p>I, {client_name}, of {client_address}, do hereby appoint {attorney_name} as my true and lawful attorney for the following purposes:</p>
+
+<h3>1. POWERS GRANTED</h3>
+
+<p>{powers_granted}</p>
+
+<h3>2. DURATION</h3>
+
+<p>This Power of Attorney shall become effective on {effective_date} and shall {duration_terms}.</p>
+
+<h3>3. SIGNATURES</h3>
+
+<p>Executed this {current_date}</p>
+
+<p>_____________________<br>
+{client_name}<br>
+Principal</p>
+
+<p>WITNESSES:</p>
+
+<p>1. _____________________<br>
+Name: {witness1_name}</p>
+
+<p>2. _____________________<br>
+Name: {witness2_name}</p>', '["client_name","client_address","attorney_name","powers_granted","effective_date","duration_terms","witness1_name","witness2_name","current_date"]', 1, '2025-05-27 11:43:57.962603', '2025-05-27 11:43:57.962603', null, null),
+
+('6bc0a306-8848-429a-919e-5de218f2b571', 'Client Instruction Form', 'Standard form for collecting initial client information and instructions', 'client_forms', '<h2>Client Instruction Form</h2>
+
+<p><strong>Date:</strong> {current_date}</p>
+
+<h3>1. Client Information</h3>
+
+<p><strong>Full Name:</strong> {client_name}<br>
+<strong>Contact Number:</strong> {client_phone}<br>
+<strong>Email:</strong> {client_email}<br>
+<strong>Address:</strong> {client_address}</p>
+
+<h3>2. Matter Details</h3>
+
+<p><strong>Type of Matter:</strong> {matter_type}<br>
+<strong>Brief Description:</strong><br>
+{matter_description}</p>
+
+<h3>3. Instructions</h3>
+
+<p>{client_instructions}</p>
+
+<h3>4. Documents Provided</h3>
+
+<p>{documents_list}</p>
+
+<h3>5. Deadlines and Important Dates</h3>
+
+<p>{important_dates}</p>', '["client_name","client_phone","client_email","client_address","matter_type","matter_description","client_instructions","documents_list","important_dates","current_date"]', 1, '2025-05-27 11:43:57.962603', '2025-05-27 11:43:57.962603', null, null),
+
+('79391f35-64a0-4429-acb4-1c826c0579b1', 'Authority to Represent', 'Client authorization template', 'authorizations', '<h2>AUTHORITY TO REPRESENT</h2>
+
+<p>I, {client_name}, hereby authorize {firm_name} to act as my legal representative in connection with {matter_description}.</p>
+
+<p>This authority includes:</p>
+
+<p>{scope_of_authority}</p>
+
+<p>Dated: {current_date}</p>
+
+<p>_____________________<br>
+{client_name}</p>
+
+<p>WITNESS:</p>
+
+<p>_____________________<br>
+{witness_name}</p>', '["client_name","firm_name","matter_description","scope_of_authority","witness_name","current_date"]', 1, '2025-05-27 11:43:57.962603', '2025-05-28 06:53:38.658621', null, '835666d4-4aab-4623-ac9c-1da9f15eb407'),
+
+('a5884157-a374-4e44-bd5c-846c157e7e78', 'Chronology of Events', 'Template for creating event timelines', 'general', '<h2>CHRONOLOGY OF EVENTS</h2>
+
+<p><strong>Matter:</strong> {matter_name}</p>
+
+<p><strong>Period:</strong> {start_date} to {end_date}</p>
+
+<table style="width:100%; border-collapse: collapse;">
+<tr>
+<th style="border: 1px solid black; padding: 8px;">Date</th>
+<th style="border: 1px solid black; padding: 8px;">Event</th>
+<th style="border: 1px solid black; padding: 8px;">Documents</th>
+<th style="border: 1px solid black; padding: 8px;">Notes</th>
+</tr>
+{events_table}
+</table>
+
+<p>Prepared by: {prepared_by}<br>
+Date: {current_date}</p>', '["matter_name","start_date","end_date","events_table","prepared_by","current_date"]', 1, '2025-05-27 11:43:57.962603', '2025-05-27 11:43:57.962603', null, null),
+
+('bccb6223-b16c-4257-b0a5-cc13b51e8748', 'Certificate of Urgency', 'Template for urgent matters', 'court_documents', '<h2>CERTIFICATE OF URGENCY</h2>
+
+<p>COURT FILE NO: {court_file_number}</p>
+
+<p>IN THE MATTER OF: {case_name}</p>
+
+<p>I, {lawyer_name}, hereby certify that this matter is urgent for the following reasons:</p>
+
+<ol>
+<li>{urgency_reasons}</li>
+</ol>
+
+<p>The following prejudice will result if this matter is not heard urgently:</p>
+
+<p>{potential_prejudice}</p>
+
+<p>Dated: {current_date}</p>
+
+<p>_____________________<br>
+{lawyer_name}<br>
+Counsel for {party_name}</p>', '["court_file_number","case_name","lawyer_name","urgency_reasons","potential_prejudice","party_name","current_date"]', 1, '2025-05-27 11:43:57.962603', '2025-05-28 07:01:00.983153', null, '835666d4-4aab-4623-ac9c-1da9f15eb407'),
+
+('eca965ee-4487-40a4-9bbc-d8cb94845423', 'Request for Adjournment', 'Template for adjournment requests', 'court_documents', '<h2>REQUEST FOR ADJOURNMENT</h2>
+
+<p>COURT FILE NO: {court_file_number}</p>
+
+<p>IN THE MATTER OF: {case_name}</p>
+
+<p>I, {lawyer_name}, counsel for {party_name}, request an adjournment of the {hearing_type} scheduled for {scheduled_date} for the following reasons:</p>
+
+<p>{reasons_for_adjournment}</p>
+
+<p>Dated: {current_date}</p>
+
+<p>_____________________<br>
+{lawyer_name}<br>
+Counsel for {party_name}</p>', '["court_file_number","case_name","lawyer_name","party_name","hearing_type","scheduled_date","reasons_for_adjournment","current_date"]', 1, '2025-05-27 11:43:57.962603', '2025-05-27 11:43:57.962603', null, null),
+
+('f7584887-1fa1-4540-aa02-dc368afff52c', 'General Affidavit', 'Template for general purpose affidavit', 'court_documents', '<h2>AFFIDAVIT</h2>
+
+<p>I, {deponent_name}, of {deponent_address}, {occupation}, make oath and say as follows:</p>
+
+<ol>
+<li>I am the {relationship_to_matter} and have personal knowledge of the matters hereinafter deposed to.</li>
+<li>{affidavit_content}</li>
+</ol>
+
+<p>SWORN before me at {location}<br>
+this {current_date}</p>
+
+<p>_____________________<br>
+Commissioner for Oaths</p>
+
+<p>_____________________<br>
+{deponent_name}</p>', '["deponent_name","deponent_address","occupation","relationship_to_matter","affidavit_content","location","current_date"]', 1, '2025-05-27 11:43:57.962603', '2025-05-27 11:43:57.962603', null, null); 

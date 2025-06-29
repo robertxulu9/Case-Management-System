@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 
 // @mui material components
@@ -13,6 +13,9 @@ import IconButton from "@mui/material/IconButton";
 import Accordion from "@mui/material/Accordion";
 import AccordionSummary from "@mui/material/AccordionSummary";
 import AccordionDetails from "@mui/material/AccordionDetails";
+import Divider from "@mui/material/Divider";
+import Radio from "@mui/material/Radio";
+import RadioGroup from "@mui/material/RadioGroup";
 
 // @mui icons
 import CloseIcon from "@mui/icons-material/Close";
@@ -39,11 +42,27 @@ const COUNTRIES = [
   // Add more countries as needed
 ];
 
+// Gender options
+const GENDER_OPTIONS = [
+  { value: "male", label: "Male" },
+  { value: "female", label: "Female" },
+  { value: "other", label: "Other" },
+];
+
+// Marital status options
+const MARITAL_STATUS_OPTIONS = [
+  { value: "single", label: "Single" },
+  { value: "married", label: "Married" },
+  { value: "divorced", label: "Divorced" },
+  { value: "widowed", label: "Widowed" },
+];
+
 import { clientOperations } from "services/databaseService";
 
 function ClientModal({ open, onClose, client, onSave }) {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [validationErrors, setValidationErrors] = useState({});
   const [formData, setFormData] = useState({
     // Basic Information
     firstname: "",
@@ -56,6 +75,16 @@ function ClientModal({ open, onClose, client, onSave }) {
     workphone: "",
     homephone: "",
     
+    // Personal Information
+    nrc: "",
+    passport: "",
+    gender: "male",
+    dateofbirth: "",
+    placeofbirth: "",
+    nationality: "",
+    maritalstatus: "single",
+    occupation: "",
+    
     // Address Information
     address1: "",
     address2: "",
@@ -64,20 +93,87 @@ function ClientModal({ open, onClose, client, onSave }) {
     country: "ZM",
     
     // Additional Information
-    birthday: "",
     company: "",
     jobtitle: "",
-    nrc: "",
     website: "",
     faxnumber: "",
     notes: "",
-    ...client,
   });
 
+  // Effect to update form data when client changes
+  useEffect(() => {
+    if (client) {
+      const { id, created_at, updated_at, ...clientData } = client;
+      setFormData(prevData => ({
+        ...prevData,
+        ...clientData
+      }));
+    } else {
+      // Reset form when creating new client
+      setFormData({
+        firstname: "",
+        middlename: "",
+        lastname: "",
+        email: "",
+        peoplegroup: "client",
+        enableclientportal: false,
+        cellphone: "",
+        workphone: "",
+        homephone: "",
+        nrc: "",
+        passport: "",
+        gender: "male",
+        dateofbirth: "",
+        placeofbirth: "",
+        nationality: "",
+        maritalstatus: "single",
+        occupation: "",
+        address1: "",
+        address2: "",
+        city: "",
+        province: "",
+        country: "ZM",
+        company: "",
+        jobtitle: "",
+        website: "",
+        faxnumber: "",
+        notes: "",
+      });
+    }
+  }, [client]);
+
+  const validateField = (field, value) => {
+    const errors = {};
+    
+    switch (field) {
+      case 'email':
+        if (value && !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(value)) {
+          errors[field] = 'Invalid email address';
+        }
+        break;
+      case 'nrc':
+        if (value && value.length < 6) {
+          errors[field] = 'NRC must be at least 6 characters';
+        }
+        break;
+      // Add more field validations as needed
+    }
+    
+    return errors;
+  };
+
   const handleChange = (field) => (event) => {
-    setFormData((prev) => ({
+    const value = event.target.value;
+    const fieldErrors = validateField(field, value);
+    
+    setFormData(prev => ({
       ...prev,
-      [field]: event.target.value,
+      [field]: value,
+    }));
+    
+    setValidationErrors(prev => ({
+      ...prev,
+      [field]: fieldErrors[field],
     }));
   };
 
@@ -88,38 +184,48 @@ function ClientModal({ open, onClose, client, onSave }) {
     }));
   };
 
+  const validateForm = () => {
+    const errors = {};
+    Object.keys(formData).forEach(field => {
+      const fieldErrors = validateField(field, formData[field]);
+      if (fieldErrors[field]) {
+        errors[field] = fieldErrors[field];
+      }
+    });
+    
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
+    
+    // Validate form before submission
+    if (!validateForm()) {
+      setError('Please correct the validation errors before saving.');
+      return;
+    }
+    
     setLoading(true);
     
     try {
       // Create a copy of formData and handle empty date
-      const dataToSubmit = {
+      const { id, created_at, updated_at, ...dataToSubmit } = {
         ...formData,
-        birthday: formData.birthday || null // Convert empty string to null for date field
+        dateofbirth: formData.dateofbirth || null // Convert empty string to null for date field
       };
 
       console.log('Starting client save...', dataToSubmit);
-      const savedClient = client 
-        ? await clientOperations.updateClient(client.id, dataToSubmit)
-        : await clientOperations.createClient(dataToSubmit);
-      console.log('Client saved successfully:', savedClient);
+      const success = await onSave(dataToSubmit);
       
-      onSave(savedClient);
-      onClose();
-    } catch (error) {
-      console.error('Error saving client:', error);
-      // Format the error message
-      let errorMessage = 'Failed to save client';
-      if (error.message) {
-        errorMessage = error.message;
-      } else if (error.details) {
-        errorMessage = error.details;
-      } else if (typeof error === 'string') {
-        errorMessage = error;
+      if (success) {
+        console.log('Client saved successfully');
+        onClose();
       }
-      setError(errorMessage);
+    } catch (error) {
+      console.error('Error in handleSubmit:', error);
+      setError('An unexpected error occurred while saving the client.');
     } finally {
       setLoading(false);
     }
@@ -156,7 +262,13 @@ function ClientModal({ open, onClose, client, onSave }) {
             )}
 
             <Grid container spacing={2}>
-              {/* Basic Information */}
+              {/* Basic Information Section */}
+              <Grid item xs={12}>
+                <SoftTypography variant="h6" fontWeight="medium" mb={2}>
+                  Basic Information
+                </SoftTypography>
+              </Grid>
+
               <Grid item xs={12} sm={4}>
                 <TextField
                   fullWidth
@@ -184,7 +296,7 @@ function ClientModal({ open, onClose, client, onSave }) {
                 />
               </Grid>
 
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} sm={12}>
                 <TextField
                   fullWidth
                   label="Email"
@@ -192,6 +304,8 @@ function ClientModal({ open, onClose, client, onSave }) {
                   value={formData.email}
                   onChange={handleChange("email")}
                   required
+                  error={!!validationErrors.email}
+                  helperText={validationErrors.email}
                 />
               </Grid>
 
@@ -249,7 +363,116 @@ function ClientModal({ open, onClose, client, onSave }) {
                 />
               </Grid>
 
-              {/* Address Information */}
+              {/* Personal Information Section */}
+              <Grid item xs={12}>
+                <Divider />
+                <SoftBox mt={2} mb={1}>
+                  <SoftTypography variant="h6" fontWeight="medium">
+                    Personal Information
+                  </SoftTypography>
+                </SoftBox>
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="NRC Number"
+                  value={formData.nrc}
+                  onChange={handleChange("nrc")}
+                  required
+                  helperText="National Registration Card number is required"
+                />
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Passport Number"
+                  value={formData.passport}
+                  onChange={handleChange("passport")}
+                />
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Date of Birth"
+                  type="date"
+                  value={formData.dateofbirth}
+                  onChange={handleChange("dateofbirth")}
+                  InputLabelProps={{ shrink: true }}
+                />
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Place of Birth"
+                  value={formData.placeofbirth}
+                  onChange={handleChange("placeofbirth")}
+                />
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Nationality"
+                  value={formData.nationality}
+                  onChange={handleChange("nationality")}
+                />
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  select
+                  label="Gender"
+                  value={formData.gender}
+                  onChange={handleChange("gender")}
+                >
+                  {GENDER_OPTIONS.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  select
+                  label="Marital Status"
+                  value={formData.maritalstatus}
+                  onChange={handleChange("maritalstatus")}
+                >
+                  {MARITAL_STATUS_OPTIONS.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Occupation"
+                  value={formData.occupation}
+                  onChange={handleChange("occupation")}
+                />
+              </Grid>
+
+              {/* Address Information Section */}
+              <Grid item xs={12}>
+                <Divider />
+                <SoftBox mt={2} mb={1}>
+                  <SoftTypography variant="h6" fontWeight="medium">
+                    Address Information
+                  </SoftTypography>
+                </SoftBox>
+              </Grid>
+
               <Grid item xs={12}>
                 <TextField
                   fullWidth
@@ -299,26 +522,17 @@ function ClientModal({ open, onClose, client, onSave }) {
                 </TextField>
               </Grid>
 
-              {/* Additional Information Accordion */}
+              {/* Additional Information Section */}
               <Grid item xs={12}>
+                <Divider />
                 <Accordion>
                   <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    <SoftTypography variant="button" fontWeight="medium">
+                    <SoftTypography variant="h6" fontWeight="medium">
                       Additional Information
                     </SoftTypography>
                   </AccordionSummary>
                   <AccordionDetails>
                     <Grid container spacing={2}>
-                      <Grid item xs={12} sm={6}>
-                        <TextField
-                          fullWidth
-                          label="Birthday"
-                          type="date"
-                          value={formData.birthday}
-                          onChange={handleChange("birthday")}
-                          InputLabelProps={{ shrink: true }}
-                        />
-                      </Grid>
                       <Grid item xs={12} sm={6}>
                         <TextField
                           fullWidth
@@ -333,14 +547,6 @@ function ClientModal({ open, onClose, client, onSave }) {
                           label="Job Title"
                           value={formData.jobtitle}
                           onChange={handleChange("jobtitle")}
-                        />
-                      </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <TextField
-                          fullWidth
-                          label="NRC"
-                          value={formData.nrc}
-                          onChange={handleChange("nrc")}
                         />
                       </Grid>
                       <Grid item xs={12} sm={6}>

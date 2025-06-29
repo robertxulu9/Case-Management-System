@@ -3,25 +3,18 @@ import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
 
 // @mui material components
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
-import TablePagination from "@mui/material/TablePagination";
 import TextField from "@mui/material/TextField";
 
 // Soft UI Dashboard React components
 import SoftBox from "components/SoftBox";
+import SoftTable from "components/SoftTable";
 import SoftTypography from "components/SoftTypography";
-import SoftAvatar from "components/SoftAvatar";
-import SoftBadge from "components/SoftBadge";
+import SoftButton from "components/SoftButton";
 
 // Custom components
 import StatusIndicator from "./StatusIndicator";
 
-function ClientsTable({ clients, loading, error, onRetry }) {
+function ClientsTable({ clients, loading, error, onRetry, onViewDetails }) {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [searchQuery, setSearchQuery] = useState("");
@@ -35,11 +28,91 @@ function ClientsTable({ clients, loading, error, onRetry }) {
     setPage(0);
   };
 
-  const filteredClients = clients?.filter((client) =>
-    client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    client.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    client.phone.includes(searchQuery)
-  ) || [];
+  const getFullName = (client) => {
+    const parts = [];
+    if (client.firstname) parts.push(client.firstname);
+    if (client.middlename) parts.push(client.middlename);
+    if (client.lastname) parts.push(client.lastname);
+    return parts.join(" ");
+  };
+
+  const filteredClients = clients?.filter((client) => {
+    const searchLower = searchQuery.toLowerCase();
+    const fullName = getFullName(client);
+    return (
+      fullName.toLowerCase().includes(searchLower) ||
+      (client.email || "").toLowerCase().includes(searchLower) ||
+      (client.cellphone || "").includes(searchQuery) ||
+      (client.workphone || "").includes(searchQuery) ||
+      (client.homephone || "").includes(searchQuery)
+    );
+  }) || [];
+
+  const columns = [
+    { name: "client", align: "left", width: "25%" },
+    { name: "contact", align: "left", width: "20%" },
+    { name: "company", align: "left", width: "20%" },
+    { name: "address", align: "left", width: "25%" },
+    { name: "actions", align: "right", width: "10%" }
+  ];
+
+  const rows = filteredClients.map((client) => ({
+    client: (
+      <SoftBox display="flex" alignItems="center" px={1}>
+        <SoftBox display="flex" flexDirection="column">
+          <SoftTypography
+            variant="button"
+            fontWeight="medium"
+            sx={{ cursor: 'pointer' }}
+            onClick={() => onViewDetails(client)}
+          >
+            {getFullName(client)}
+          </SoftTypography>
+        </SoftBox>
+      </SoftBox>
+    ),
+    contact: (
+      <SoftBox display="flex" flexDirection="column">
+        <SoftTypography variant="caption" color="secondary">
+          {client.email}
+        </SoftTypography>
+        <SoftTypography variant="caption" color="secondary">
+          {client.cellphone || client.workphone || client.homephone}
+        </SoftTypography>
+      </SoftBox>
+    ),
+    company: (
+      <SoftBox display="flex" flexDirection="column">
+        <SoftTypography variant="caption" color="secondary">
+          {client.company}
+        </SoftTypography>
+        <SoftTypography variant="caption" color="secondary">
+          {client.jobtitle}
+        </SoftTypography>
+      </SoftBox>
+    ),
+    address: (
+      <SoftBox display="flex" flexDirection="column">
+        <SoftTypography variant="caption" color="secondary">
+          {client.address1}
+          {client.address2 ? `, ${client.address2}` : ''}
+        </SoftTypography>
+        <SoftTypography variant="caption" color="secondary">
+          {[client.city, client.province, client.country].filter(Boolean).join(", ")}
+        </SoftTypography>
+      </SoftBox>
+    ),
+    actions: (
+      <SoftButton
+        variant="text"
+        color="info"
+        onClick={() => onViewDetails(client)}
+      >
+        View Details
+      </SoftButton>
+    ),
+    onClick: () => onViewDetails(client)
+  }));
 
   return (
     <SoftBox>
@@ -55,103 +128,17 @@ function ClientsTable({ clients, loading, error, onRetry }) {
       </SoftBox>
 
       <StatusIndicator loading={loading} error={error} onRetry={onRetry}>
-        <TableContainer>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Client</TableCell>
-                <TableCell>Contact</TableCell>
-                <TableCell>Cases</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell>Last Active</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {filteredClients.length === 0 && !loading && !error ? (
-                <TableRow>
-                  <TableCell colSpan={5} align="center">
-                    <SoftTypography variant="body2" color="text">
-                      No clients found
-                    </SoftTypography>
-                  </TableCell>
-                </TableRow>
-              ) : (
-                filteredClients
-                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                  .map((client) => (
-                    <TableRow key={client.id}>
-                      <TableCell>
-                        <SoftBox display="flex" alignItems="center" px={1}>
-                          <SoftBox mr={2}>
-                            <SoftAvatar
-                              src={client.avatar}
-                              alt={client.name}
-                              size="sm"
-                              variant="rounded"
-                            />
-                          </SoftBox>
-                          <SoftBox display="flex" flexDirection="column">
-                            <SoftTypography
-                              component={Link}
-                              to={`/clients/${client.id}`}
-                              variant="button"
-                              fontWeight="medium"
-                              sx={{ textDecoration: "none" }}
-                            >
-                              {client.name}
-                            </SoftTypography>
-                            <SoftTypography variant="caption" color="secondary">
-                              {client.company}
-                            </SoftTypography>
-                          </SoftBox>
-                        </SoftBox>
-                      </TableCell>
-                      <TableCell>
-                        <SoftBox display="flex" flexDirection="column">
-                          <SoftTypography variant="caption" color="secondary">
-                            {client.email}
-                          </SoftTypography>
-                          <SoftTypography variant="caption" color="secondary">
-                            {client.phone}
-                          </SoftTypography>
-                        </SoftBox>
-                      </TableCell>
-                      <TableCell>
-                        <SoftBadge
-                          variant="gradient"
-                          color="info"
-                          badgeContent={client.activeCases}
-                          container
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <SoftBadge
-                          variant="gradient"
-                          color={client.status === "Active" ? "success" : "error"}
-                          badgeContent={client.status}
-                          container
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <SoftTypography variant="caption" color="secondary">
-                          {new Date(client.lastActive).toLocaleDateString()}
-                        </SoftTypography>
-                      </TableCell>
-                    </TableRow>
-                  ))
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
-          component="div"
-          count={filteredClients.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-          disabled={loading || error}
+        <SoftTable
+          title="Clients"
+          columns={columns}
+          rows={rows}
+          pagination={{
+            total: filteredClients.length,
+            page,
+            rowsPerPage,
+            onPageChange: handleChangePage,
+            onRowsPerPageChange: handleChangeRowsPerPage
+          }}
         />
       </StatusIndicator>
     </SoftBox>
@@ -162,14 +149,20 @@ ClientsTable.propTypes = {
   clients: PropTypes.arrayOf(
     PropTypes.shape({
       id: PropTypes.string.isRequired,
-      name: PropTypes.string.isRequired,
-      email: PropTypes.string.isRequired,
-      phone: PropTypes.string.isRequired,
+      firstname: PropTypes.string,
+      middlename: PropTypes.string,
+      lastname: PropTypes.string,
+      email: PropTypes.string,
+      cellphone: PropTypes.string,
+      workphone: PropTypes.string,
+      homephone: PropTypes.string,
       company: PropTypes.string,
-      avatar: PropTypes.string,
-      activeCases: PropTypes.number.isRequired,
-      status: PropTypes.string.isRequired,
-      lastActive: PropTypes.string.isRequired,
+      jobtitle: PropTypes.string,
+      address1: PropTypes.string,
+      address2: PropTypes.string,
+      city: PropTypes.string,
+      province: PropTypes.string,
+      country: PropTypes.string,
     })
   ),
   loading: PropTypes.bool,
@@ -177,6 +170,7 @@ ClientsTable.propTypes = {
     message: PropTypes.string,
   }),
   onRetry: PropTypes.func,
+  onViewDetails: PropTypes.func.isRequired,
 };
 
 ClientsTable.defaultProps = {

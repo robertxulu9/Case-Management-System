@@ -24,9 +24,10 @@ const { transparent } = colors;
 const select = {
   styleOverrides: {
     select: {
-      display: "grid",
+      display: "flex",
       alignItems: "center",
       padding: `0 ${pxToRem(12)} !important`,
+      cursor: "pointer",
 
       "& .Mui-selected": {
         backgroundColor: transparent.main,
@@ -35,13 +36,17 @@ const select = {
 
     selectMenu: {
       background: "none",
-      height: "none",
-      minHeight: "none",
-      overflow: "unset",
+      minHeight: "auto",
+      overflow: "hidden",
     },
 
     icon: {
-      display: "none",
+      display: "block",
+      right: pxToRem(12),
+      position: "absolute",
+      pointerEvents: "none",
+      color: "inherit",
+      transition: "transform 0.2s",
     },
   },
 };

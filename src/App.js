@@ -14,39 +14,42 @@ Coded by www.creative-tim.com
 */
 
 import { useState, useEffect, useMemo } from "react";
-
-// react-router components
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
-
-// @mui material components
 import { ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import Icon from "@mui/material/Icon";
-
-// Soft UI Dashboard React components
 import SoftBox from "components/SoftBox";
-
-// Soft UI Dashboard React examples
 import Sidenav from "examples/Sidenav";
-import Configurator from "examples/Configurator";
-
-// Soft UI Dashboard React themes
 import theme from "assets/theme";
 import themeRTL from "assets/theme/theme-rtl";
-
-// RTL plugins
 import rtlPlugin from "stylis-plugin-rtl";
 import { CacheProvider } from "@emotion/react";
 import createCache from "@emotion/cache";
-
-// Soft UI Dashboard React routes
 import routes from "routes";
-
-// Soft UI Dashboard React contexts
 import { useSoftUIController, setMiniSidenav, setOpenConfigurator } from "context";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { Toaster } from "react-hot-toast";
+import PropTypes from "prop-types";
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 // Images
 import brand from "assets/images/logo-ct.png";
+
+const ProtectedRoute = ({ children }) => {
+  const { user } = useAuth();
+  const location = useLocation();
+
+  if (!user) {
+    // Redirect to sign-in but save the attempted location
+    return <Navigate to="/authentication/sign-in" state={{ from: location }} replace />;
+  }
+
+  return children;
+};
+
+ProtectedRoute.propTypes = {
+  children: PropTypes.node.isRequired,
+};
 
 export default function App() {
   const [controller, dispatch] = useSoftUIController();
@@ -102,7 +105,23 @@ export default function App() {
       }
 
       if (route.route) {
-        return <Route exact path={route.route} element={route.component} key={route.key} />;
+        const Component = route.component;
+        return (
+          <Route
+            exact
+            path={route.route}
+            element={
+              route.protected ? (
+                <ProtectedRoute>
+                  <Component />
+                </ProtectedRoute>
+              ) : (
+                <Component />
+              )
+            }
+            key={route.key}
+          />
+        );
       }
 
       return null;
@@ -132,53 +151,52 @@ export default function App() {
     </SoftBox>
   );
 
-  return direction === "rtl" ? (
-    <CacheProvider value={rtlCache}>
-      <ThemeProvider theme={themeRTL}>
-        <CssBaseline />
-        {layout === "dashboard" && (
-          <>
-            <Sidenav
-              color={sidenavColor}
-              brand={brand}
-              brandName="Case Management"
-              routes={routes}
-              onMouseEnter={handleOnMouseEnter}
-              onMouseLeave={handleOnMouseLeave}
-            />
-            <Configurator />
-            {configsButton}
-          </>
-        )}
-        {layout === "vr" && <Configurator />}
-        <Routes>
-          {getRoutes(routes)}
-          <Route path="*" element={<Navigate to="/" />} />
-        </Routes>
-      </ThemeProvider>
-    </CacheProvider>
-  ) : (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      {layout === "dashboard" && (
-        <>
-          <Sidenav
-            color={sidenavColor}
-            brand={brand}
-            brandName="Case Management"
-            routes={routes}
-            onMouseEnter={handleOnMouseEnter}
-            onMouseLeave={handleOnMouseLeave}
-          />
-          <Configurator />
-          {configsButton}
-        </>
+  return (
+    <AuthProvider>
+      <Toaster position="top-right" />
+      {direction === "rtl" ? (
+        <CacheProvider value={rtlCache}>
+          <ThemeProvider theme={themeRTL}>
+            <CssBaseline />
+            {layout === "dashboard" && (
+              <>
+                <Sidenav
+                  color={sidenavColor}
+                  brand={brand}
+                  brandName="Case Management"
+                  routes={routes}
+                  onMouseEnter={handleOnMouseEnter}
+                  onMouseLeave={handleOnMouseLeave}
+                />
+                {configsButton}
+              </>
+            )}
+            <Routes>
+              {getRoutes(routes)}
+            </Routes>
+          </ThemeProvider>
+        </CacheProvider>
+      ) : (
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          {layout === "dashboard" && (
+            <>
+              <Sidenav
+                color={sidenavColor}
+                brand={brand}
+                brandName="Case Management"
+                routes={routes}
+                onMouseEnter={handleOnMouseEnter}
+                onMouseLeave={handleOnMouseLeave}
+              />
+              {configsButton}
+            </>
+          )}
+          <Routes>
+            {getRoutes(routes)}
+          </Routes>
+        </ThemeProvider>
       )}
-      {layout === "vr" && <Configurator />}
-      <Routes>
-        {getRoutes(routes)}
-        <Route path="*" element={<Navigate to="/" />} />
-      </Routes>
-    </ThemeProvider>
+    </AuthProvider>
   );
 }

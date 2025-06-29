@@ -30,11 +30,11 @@ import { useTimeline } from "examples/Timeline/context";
 // Custom styles for the TimelineItem
 import { timelineItem, timelineItemIcon } from "examples/Timeline/TimelineItem/styles";
 
-function TimelineItem({ color, icon, title, dateTime, description, badges, lastItem }) {
+function TimelineItem({ color, icon, title, dateTime, description, badges = [], lastItem }) {
   const isDark = useTimeline();
 
   const renderBadges =
-    badges.length > 0
+    badges?.length > 0
       ? badges.map((badge, key) => {
           const badgeKey = `badge-${key}`;
 

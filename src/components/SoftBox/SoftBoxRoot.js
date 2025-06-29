@@ -17,11 +17,11 @@ Coded by www.creative-tim.com
 import Box from "@mui/material/Box";
 import { styled } from "@mui/material/styles";
 
-export default styled(Box)(({ theme, ownerState }) => {
-  const { palette, functions = {}, borders = {}, boxShadows = {} } = theme || {};
+export default styled(Box)(({ theme = {}, ownerState }) => {
+  const { palette = {}, functions = {}, borders = {}, boxShadows = {} } = theme;
   const { variant, bgColor, color, opacity, borderRadius, shadow } = ownerState;
 
-  const { gradients = {}, grey = {}, white = {} } = palette || {};
+  const { gradients = {}, grey = {}, white = {} } = palette;
   const { linearGradient = () => "" } = functions;
   const { borderRadius: radius = {} } = borders;
 
@@ -79,41 +79,41 @@ export default styled(Box)(({ theme, ownerState }) => {
   let backgroundValue = bgColor;
 
   if (variant === "gradient") {
-    backgroundValue = validGradients.find((el) => el === bgColor)
-      ? linearGradient(gradients[bgColor].main, gradients[bgColor].state)
-      : white.main;
+    if (validGradients.find((el) => el === bgColor) && gradients[bgColor]?.main && gradients[bgColor]?.state) {
+      backgroundValue = linearGradient(gradients[bgColor].main, gradients[bgColor].state);
+    } else {
+      backgroundValue = white?.main || "#ffffff";
+    }
   } else if (validColors.find((el) => el === bgColor)) {
-    backgroundValue = palette[bgColor] ? palette[bgColor].main : greyColors[bgColor];
-  } else {
-    backgroundValue = bgColor;
+    backgroundValue = palette[bgColor]?.main || greyColors[bgColor] || bgColor;
   }
 
   // color value
   let colorValue = color;
 
   if (validColors.find((el) => el === color)) {
-    colorValue = palette[color] ? palette[color].main : greyColors[color];
+    colorValue = palette[color]?.main || greyColors[color] || color;
   }
 
   // borderRadius value
   let borderRadiusValue = borderRadius;
 
   if (validBorderRadius.find((el) => el === borderRadius)) {
-    borderRadiusValue = radius[borderRadius];
+    borderRadiusValue = radius[borderRadius] || borderRadius;
   }
 
   // boxShadow value
   let boxShadowValue = boxShadows;
 
   if (validBoxShadows.find((el) => el === shadow)) {
-    boxShadowValue = boxShadows[shadow];
+    boxShadowValue = boxShadows[shadow] || "none";
   }
 
   return {
     opacity,
-    background: backgroundValue,
-    color: colorValue,
-    borderRadius: borderRadiusValue,
-    boxShadow: boxShadowValue,
+    background: backgroundValue || "transparent",
+    color: colorValue || "inherit",
+    borderRadius: borderRadiusValue || "0",
+    boxShadow: boxShadowValue || "none",
   };
 });

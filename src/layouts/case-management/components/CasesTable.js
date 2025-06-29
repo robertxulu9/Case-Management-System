@@ -1,23 +1,23 @@
 import { useState } from "react";
 import PropTypes from "prop-types";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 // @mui material components
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
-import TablePagination from "@mui/material/TablePagination";
+import Icon from "@mui/material/Icon";
+import IconButton from "@mui/material/IconButton";
+import CircularProgress from "@mui/material/CircularProgress";
 
 // Soft UI Dashboard React components
 import SoftBox from "components/SoftBox";
+import SoftTable from "components/SoftTable";
 import SoftTypography from "components/SoftTypography";
-import SoftAvatar from "components/SoftAvatar";
 import SoftBadge from "components/SoftBadge";
 
+// Services
+import { practiceAreaOperations } from "services/databaseService";
+
 function CasesTable({ cases, filters }) {
+  const navigate = useNavigate();
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
@@ -30,93 +30,124 @@ function CasesTable({ cases, filters }) {
     setPage(0);
   };
 
-  const filteredCases = cases.filter((caseItem) => {
-    const matchesSearch = (caseItem.casename?.toLowerCase() || "").includes(filters.search.toLowerCase()) ||
-                         (`${caseItem.client?.firstname || ''} ${caseItem.client?.lastname || ''}`.toLowerCase().includes(filters.search.toLowerCase()));
-    const matchesStatus = filters.status === "all" || (caseItem.casestage || "").toLowerCase() === filters.status.toLowerCase();
-    // You can add more filter logic for priority if needed
-    return matchesSearch && matchesStatus;
+  const handleRowClick = (caseItem) => {
+    navigate(`/cases/${caseItem.casename.split(' ').join('-')}`);
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return date.toLocaleDateString();
+  };
+
+  const getCaseStageColor = (stage) => {
+    switch (stage) {
+      case "closed":
+        return "error";
+      case "trial":
+      case "judgment":
+      case "appeal":
+        return "warning";
+      case "consultation":
+      case "investigation":
+        return "info";
+      case "pre-litigation":
+      case "settlement":
+        return "primary";
+      case "filed":
+      case "discovery":
+        return "secondary";
+      default:
+        return "success";
+    }
+  };
+
+  const columns = [
+    { name: "case", align: "left" },
+    { name: "client", align: "left" },
+    { name: "stage", align: "center" },
+    { name: "opened", align: "center" }
+  ];
+
+  const rows = cases.map((caseItem) => ({
+    case: (
+      <SoftBox>
+        <SoftTypography variant="button" fontWeight="medium">
+          {caseItem.casename}
+        </SoftTypography>
+        <SoftTypography variant="caption" color="secondary">
+          {caseItem.casenumber}
+        </SoftTypography>
+      </SoftBox>
+    ),
+    client: (
+      <SoftBox>
+        {caseItem.client && (
+          <>
+            <SoftTypography variant="button" fontWeight="medium">
+              {`${caseItem.client.firstname} ${caseItem.client.lastname}`}
+            </SoftTypography>
+            {caseItem.client.company && (
+              <SoftTypography variant="caption" color="secondary">
+                {caseItem.client.company}
+              </SoftTypography>
+            )}
+          </>
+        )}
+      </SoftBox>
+    ),
+    stage: (
+      <SoftBadge
+        variant="gradient"
+        color={getCaseStageColor(caseItem.casestage)}
+        size="sm"
+        badgeContent={caseItem.casestage || "NEW"}
+        container
+      />
+    ),
+    opened: (
+      <SoftTypography variant="caption" color="secondary" fontWeight="medium">
+        {formatDate(caseItem.dateopened)}
+      </SoftTypography>
+    ),
+    onClick: () => handleRowClick(caseItem)
+  }));
+
+  // Filter cases based on search and other filters
+  const filteredCases = cases.filter(caseItem => {
+    if (filters.search) {
+      const searchLower = filters.search.toLowerCase();
+      const matchesSearch = 
+        caseItem.casename.toLowerCase().includes(searchLower) ||
+        caseItem.casenumber.toLowerCase().includes(searchLower) ||
+        (caseItem.client && 
+          `${caseItem.client.firstname} ${caseItem.client.lastname}`.toLowerCase().includes(searchLower));
+      
+      if (!matchesSearch) return false;
+    }
+
+    if (filters.status && filters.status !== 'all' && caseItem.casestage !== filters.status) {
+      return false;
+    }
+
+    return true;
   });
 
   return (
-    <>
-      <TableContainer>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Case Name</TableCell>
-              <TableCell>Client</TableCell>
-              <TableCell>Stage</TableCell>
-              <TableCell>Date Opened</TableCell>
-              <TableCell>Practice Area</TableCell>
-              <TableCell>Case Number</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {filteredCases
-              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((caseItem) => (
-                <TableRow key={caseItem.id}>
-                  <TableCell>
-                    <SoftTypography
-                      component={Link}
-                      to={`/cases/${caseItem.id}`}
-                      variant="button"
-                      fontWeight="medium"
-                      sx={{ textDecoration: "none" }}
-                    >
-                      {caseItem.casename}
-                    </SoftTypography>
-                  </TableCell>
-                  <TableCell>
-                    <SoftTypography variant="button" fontWeight="medium">
-                      {caseItem.client ? `${caseItem.client.firstname} ${caseItem.client.lastname}` : ''}
-                    </SoftTypography>
-                  </TableCell>
-                  <TableCell>
-                    <SoftBadge
-                      variant="gradient"
-                      color={
-                        caseItem.casestage === "closed"
-                          ? "error"
-                          : caseItem.casestage === "trial"
-                          ? "warning"
-                          : "success"
-                      }
-                      badgeContent={caseItem.casestage}
-                      container
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <SoftTypography variant="caption" color="secondary">
-                      {caseItem.dateopened}
-                    </SoftTypography>
-                  </TableCell>
-                  <TableCell>
-                    <SoftTypography variant="caption" color="secondary">
-                      {caseItem.practicearea}
-                    </SoftTypography>
-                  </TableCell>
-                  <TableCell>
-                    <SoftTypography variant="caption" color="secondary">
-                      {caseItem.casenumber}
-                    </SoftTypography>
-                  </TableCell>
-                </TableRow>
-              ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-      <TablePagination
-        rowsPerPageOptions={[5, 10, 25]}
-        component="div"
-        count={filteredCases.length}
-        rowsPerPage={rowsPerPage}
-        page={page}
-        onPageChange={handleChangePage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
+    <SoftBox>
+      <SoftTable
+        columns={columns}
+        rows={rows}
+        onRowClick={(row) => row.onClick && row.onClick()}
+        pagination={{
+          count: filteredCases.length,
+          page,
+          rowsPerPage,
+          onPageChange: handleChangePage,
+          onRowsPerPageChange: handleChangeRowsPerPage
+        }}
       />
-    </>
+    </SoftBox>
   );
 }
 
@@ -124,22 +155,18 @@ CasesTable.propTypes = {
   cases: PropTypes.arrayOf(
     PropTypes.shape({
       id: PropTypes.string.isRequired,
-      casenumber: PropTypes.string.isRequired,
       casename: PropTypes.string.isRequired,
-      casestage: PropTypes.string.isRequired,
+      casenumber: PropTypes.string,
+      casestage: PropTypes.string,
       dateopened: PropTypes.string.isRequired,
-      practicearea: PropTypes.string,
       client: PropTypes.shape({
-        firstname: PropTypes.string,
-        lastname: PropTypes.string,
-      }),
+        firstname: PropTypes.string.isRequired,
+        lastname: PropTypes.string.isRequired,
+        company: PropTypes.string
+      })
     })
   ).isRequired,
-  filters: PropTypes.shape({
-    search: PropTypes.string,
-    status: PropTypes.string,
-    priority: PropTypes.string,
-  }).isRequired,
+  filters: PropTypes.object.isRequired
 };
 
 export default CasesTable; 

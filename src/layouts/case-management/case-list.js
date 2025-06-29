@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import toast from "react-hot-toast";
 
 // @mui material components
 import Grid from "@mui/material/Grid";
@@ -26,60 +27,52 @@ import { caseOperations } from "services/databaseService";
 
 function CaseList() {
   const [controller, dispatch] = useSoftUIController();
-  const { direction = 'ltr' } = controller || {};
   const [cases, setCases] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [filters, setFilters] = useState({
-    status: "all",
-    priority: "all",
     search: "",
+    status: "all",
+    priority: "all"
   });
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedCase, setSelectedCase] = useState(null);
 
   useEffect(() => {
-    setDirection(dispatch, "ltr");
-    // Fetch cases from Supabase
-    const fetchCases = async () => {
-      try {
-        const data = await caseOperations.getAllCases();
-        setCases(data || []);
-      } catch (err) {
-        console.error('Error fetching cases:', err);
-      }
-    };
-    fetchCases();
-  }, [dispatch]);
+    loadCases();
+  }, []);
 
-  const handleFilterChange = (filterName, value) => {
-    setFilters((prev) => ({
-      ...prev,
-      [filterName]: value,
-    }));
+  const loadCases = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await caseOperations.getAllCases();
+      setCases(data);
+    } catch (err) {
+      console.error('Error loading cases:', err);
+      setError(err.message);
+      toast.error('Failed to load cases: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleOpenModal = (caseData = null) => {
-    setSelectedCase(caseData);
+  const handleOpenModal = () => {
     setIsModalOpen(true);
   };
 
   const handleCloseModal = () => {
-    setSelectedCase(null);
     setIsModalOpen(false);
   };
 
-  const handleSaveCase = async (caseData) => {
-    // Save to Supabase
+  const handleCreateCase = async (caseData) => {
     try {
-      if (selectedCase) {
-        await caseOperations.updateCase(selectedCase.id, caseData);
-      } else {
-        await caseOperations.createCase(caseData);
-      }
-      // Refresh cases from Supabase
-      const data = await caseOperations.getAllCases();
-      setCases(data || []);
-    } catch (err) {
-      console.error('Error saving case:', err);
+      await caseOperations.createCase(caseData);
+      toast.success('Case created successfully');
+      loadCases();
+      handleCloseModal();
+    } catch (error) {
+      console.error('Error creating case:', error);
+      toast.error('Failed to create case: ' + error.message);
     }
   };
 
@@ -106,48 +99,19 @@ function CaseList() {
           </Grid>
         </SoftBox>
 
-        <SoftBox mb={3}>
-          <Card>
-            <SoftBox p={3}>
-              <Grid container spacing={3}>
-                <Grid item xs={12} md={4}>
-                  <SoftInput
-                    placeholder="Search cases..."
-                    value={filters.search}
-                    onChange={(e) => handleFilterChange("search", e.target.value)}
-                  />
-                </Grid>
-                <Grid item xs={12} md={8}>
-                  <CaseFilters
-                    filters={filters}
-                    onFilterChange={handleFilterChange}
-                  />
-                </Grid>
-              </Grid>
-            </SoftBox>
-          </Card>
-        </SoftBox>
-
-        <SoftBox mb={3}>
-          <Card>
-            <SoftBox p={3}>
-              <CasesTable
-                cases={cases}
-                filters={filters}
-                onEditCase={handleOpenModal}
-              />
-            </SoftBox>
-          </Card>
-        </SoftBox>
+        <Card>
+          <SoftBox p={3}>
+            <CaseFilters filters={filters} onFilterChange={setFilters} />
+            <CasesTable 
+              cases={cases} 
+              filters={filters}
+              loading={loading}
+              error={error}
+              onRetry={loadCases}
+            />
+          </SoftBox>
+        </Card>
       </SoftBox>
-
-      <CaseModal
-        open={isModalOpen}
-        onClose={handleCloseModal}
-        caseData={selectedCase}
-        onSave={handleSaveCase}
-      />
-
       <Footer 
         company={{
           href: "https://www.creative-tim.com/",
@@ -159,6 +123,11 @@ function CaseList() {
           { href: "https://www.creative-tim.com/blog", name: "Blog" },
           { href: "https://www.creative-tim.com/license", name: "License" }
         ]}
+      />
+      <CaseModal
+        open={isModalOpen}
+        onClose={handleCloseModal}
+        onSave={handleCreateCase}
       />
     </DashboardLayout>
   );
