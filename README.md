@@ -43,19 +43,31 @@ A comprehensive, full-stack web application designed to streamline the managemen
 | React + Material UI | Node.js + Express | MySQL | JWT, date-fns, PDF generator |
 
 ---
+## 🖼️ Demontration video
+- https://youtu.be/TozTdIsqyVQ
 
 ## 🖼️ Screenshots
 
-> *(You can add screenshots by placing them in a `/screenshots` folder and linking them below)*
-
+- **Login View**
+  ![Login](./screenshots/login.png)
+  
 - **Dashboard View**
   ![Dashboard](./screenshots/dashboard.png)
 
 - **Case Details**
-  ![Case Details](./screenshots/case-details.png)
+  ![Case Details](./screenshots/cases.png)
 
 - **Document Template Editor**
-  ![Documents](./screenshots/document-template.png)
+  ![Templates](./screenshots/templates.png)
+
+- **Calendar View**
+  ![Calendar](./screenshots/calendar.png)
+
+- **Calendar task View**
+  ![Calendar task](./screenshots/calendar_task.png)
+
+- **Clients View**
+  ![Clients](./screenshots/Clients.png)
 
 ---
 
@@ -64,7 +76,7 @@ A comprehensive, full-stack web application designed to streamline the managemen
 Clone the repository and install dependencies:
 
 ```bash
-git clone https://github.com/your-username/case-management-system.git
+git clone https://github.com/robertxulu9/case-management-system.git
 cd case-management-system
 
 # Backend Setup
